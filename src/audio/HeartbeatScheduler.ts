@@ -115,28 +115,63 @@ export class HeartbeatScheduler {
   private scheduleHeartbeatThump(when: number): void {
     const ctx = AudioEngine.audioContext!;
     const bus = AudioEngine.bus("heartbeat");
-    this.thump(ctx, bus, when, 70, 0.9 * this.syntheticGain);
-    this.thump(ctx, bus, when + 0.16, 60, 0.55 * this.syntheticGain);
+    /* S1 (lub) — louder, slightly higher fundamental so laptop speakers can reproduce it. */
+    this.thump(ctx, bus, when, 95, 1.0 * this.syntheticGain);
+    /* S2 (dub) — softer, comes ~180ms later. */
+    this.thump(ctx, bus, when + 0.18, 80, 0.7 * this.syntheticGain);
+  }
+
+  /** Manually trigger one heartbeat right now. Useful from the dev panel for debugging. */
+  testThump(): void {
+    const ctx = AudioEngine.audioContext;
+    if (!ctx) return;
+    this.scheduleHeartbeatThump(ctx.currentTime + 0.05);
   }
 
   private thump(ctx: AudioContext, dest: AudioNode, at: number, freq: number, peak: number): void {
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
+    /* Body — sine wave with a fast pitch sweep, mimicking chest cavity resonance. */
+    const body = ctx.createOscillator();
+    const bodyGain = ctx.createGain();
     const lpf = ctx.createBiquadFilter();
     lpf.type = "lowpass";
-    lpf.frequency.value = 220;
+    lpf.frequency.value = 320;
     lpf.Q.value = 0.7;
-    osc.type = "sine";
-    osc.frequency.setValueAtTime(freq * 1.4, at);
-    osc.frequency.exponentialRampToValueAtTime(freq * 0.7, at + 0.18);
-    gain.gain.setValueAtTime(0.0001, at);
-    gain.gain.exponentialRampToValueAtTime(peak, at + 0.012);
-    gain.gain.exponentialRampToValueAtTime(0.0001, at + 0.32);
-    osc.connect(gain);
-    gain.connect(lpf);
+    body.type = "sine";
+    body.frequency.setValueAtTime(freq * 1.6, at);
+    body.frequency.exponentialRampToValueAtTime(freq * 0.85, at + 0.06);
+    body.frequency.exponentialRampToValueAtTime(freq * 0.55, at + 0.22);
+    bodyGain.gain.setValueAtTime(0.0001, at);
+    bodyGain.gain.exponentialRampToValueAtTime(peak, at + 0.008);
+    bodyGain.gain.exponentialRampToValueAtTime(0.0001, at + 0.34);
+    body.connect(bodyGain);
+    bodyGain.connect(lpf);
     lpf.connect(dest);
-    osc.start(at);
-    osc.stop(at + 0.4);
+    body.start(at);
+    body.stop(at + 0.4);
+
+    /* Transient — short filtered noise burst (the "thwack" of a valve closing).
+       This is what makes the heartbeat audible on laptop speakers — pure low-end
+       gets eaten by small drivers, but a mid-range click cuts through. */
+    const noiseDur = 0.05;
+    const sr = ctx.sampleRate;
+    const noiseLen = Math.floor(sr * noiseDur);
+    const buf = ctx.createBuffer(1, noiseLen, sr);
+    const data = buf.getChannelData(0);
+    for (let i = 0; i < noiseLen; i++) {
+      data[i] = (Math.random() * 2 - 1) * Math.exp(-(i / noiseLen) * 5);
+    }
+    const noise = ctx.createBufferSource();
+    noise.buffer = buf;
+    const noiseFilter = ctx.createBiquadFilter();
+    noiseFilter.type = "bandpass";
+    noiseFilter.frequency.value = 280;
+    noiseFilter.Q.value = 0.5;
+    const noiseGain = ctx.createGain();
+    noiseGain.gain.value = peak * 0.55;
+    noise.connect(noiseFilter);
+    noiseFilter.connect(noiseGain);
+    noiseGain.connect(dest);
+    noise.start(at);
   }
 }
 

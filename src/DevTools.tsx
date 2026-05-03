@@ -1,3 +1,5 @@
+import { AudioEngine } from "./audio/AudioEngine";
+import { heartbeat } from "./audio/HeartbeatScheduler";
 import type { ActId, BeatEvent } from "./types";
 
 interface Props {
@@ -6,6 +8,11 @@ interface Props {
   progress: number;
   unlocked: boolean;
   onJump: (target: ActId) => void;
+}
+
+async function testThump(): Promise<void> {
+  if (!AudioEngine.isUnlocked) await AudioEngine.unlock();
+  heartbeat.testThump();
 }
 
 const ACTS: ActId[] = ["threshold", "pulse", "memories", "crossfade", "answer", "holding"];
@@ -40,6 +47,11 @@ export function DevTools({ act, beat, progress, unlocked, onJump }: Props) {
             {a}
           </button>
         ))}
+      </div>
+      <div className="dev-tools__jump">
+        <button className="dev-tools__jump-btn" onClick={() => void testThump()}>
+          test thump
+        </button>
       </div>
       <div className="dev-tools__hint">?dev=1 · proposal URL hides this panel</div>
     </div>
