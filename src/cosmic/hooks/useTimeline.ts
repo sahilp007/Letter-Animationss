@@ -26,11 +26,11 @@ export function useTimeline(initial: Movement = "opening") {
   useEffect(() => {
     let raf = 0;
     const durations: Record<Movement, number> = {
-      opening: 45,
-      lift: 75,
-      galaxy: 90,
-      conductor: 120,
-      crescendo: 90,
+      opening: 50,
+      lift: 32,
+      galaxy: 55,
+      conductor: 110,
+      crescendo: 70,
       coda: 60,
       moment: Infinity,
     };

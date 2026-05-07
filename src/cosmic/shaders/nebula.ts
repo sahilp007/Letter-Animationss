@@ -1,6 +1,10 @@
 /**
- * Volumetric-feeling nebula rendered as a single fullscreen quad behind the galaxy.
- * Uses layered fbm noise + a warm/cool gradient that responds to overall intensity.
+ * Volumetric-feeling nebula on a fullscreen quad. Layered fbm noise + warm/cool gradient.
+ * The deep tone is near-black to read as proper space rather than a tinted vignette.
+ *
+ * Two density layers — a cool wash and a warmer bloom that swims across it — give the
+ * familiar Hubble-style "interstellar dust + ionized hydrogen" look. Subtle film-grain
+ * noise is added at the end so the final image doesn't look digitally clean.
  */
 
 export const NEBULA_VERT = /* glsl */ `
@@ -41,9 +45,9 @@ float vnoise(vec2 p) {
 float fbm(vec2 p) {
   float v = 0.0;
   float amp = 0.5;
-  for (int i = 0; i < 5; i++) {
+  for (int i = 0; i < 6; i++) {
     v += amp * vnoise(p);
-    p *= 2.07;
+    p = p * 2.07 + vec2(11.3, 7.7);
     amp *= 0.5;
   }
   return v;
@@ -52,21 +56,39 @@ float fbm(vec2 p) {
 void main() {
   vec2 uv = vUv;
   uv.x *= uAspect;
-  vec2 p = uv * 1.6;
-  float t = uTime * 0.012;
 
-  float n1 = fbm(p + vec2(t, t * 0.7));
-  float n2 = fbm(p * 1.7 - vec2(t * 0.6, -t * 0.4));
-  float n = pow(mix(n1, n2, 0.55), 1.4);
+  float t = uTime * 0.008;
 
-  /* radial fade from center — keeps the dramatic vignette. */
-  float r = length(vUv - vec2(0.5));
-  float vignette = smoothstep(0.95, 0.2, r);
+  /* Cool layer — broader, drifts slowly. */
+  float n1 = fbm(uv * 1.4 + vec2(t * 1.2, t * 0.5));
+  /* Warm layer — tighter, drifts the other way. */
+  float n2 = fbm(uv * 2.6 - vec2(t * 0.7, -t * 0.4));
+  /* Tendrils — high-frequency detail that breaks up flat regions. */
+  float n3 = fbm(uv * 4.4 + vec2(-t, t * 0.8));
 
-  vec3 base = mix(uDeep, uCool, n);
-  base = mix(base, uWarm, smoothstep(0.55, 0.95, n) * 0.85);
+  float coolMass = pow(smoothstep(0.25, 0.85, n1), 1.6);
+  float warmMass = pow(smoothstep(0.45, 0.92, n2 * 0.6 + n3 * 0.4), 1.4);
 
-  base *= vignette * (0.55 + 0.6 * uIntensity);
-  gl_FragColor = vec4(base, 1.0);
+  /* Radial soft vignette pulling the eye to center, never harsh. */
+  vec2 r2 = vUv - vec2(0.5);
+  r2.x *= uAspect / max(uAspect, 1.0);
+  float r = length(r2);
+  float vignette = smoothstep(0.95, 0.18, r);
+
+  /* Compose. Start from the deep void and add color in proportion to mass. */
+  vec3 col = uDeep;
+  col = mix(col, uCool, coolMass * 0.85);
+  col = mix(col, uWarm, warmMass * 0.95);
+
+  /* A faint ambient lift in the very deepest regions so it never reads as pure black. */
+  col += uDeep * 0.5;
+
+  col *= vignette * (0.55 + 0.7 * uIntensity);
+
+  /* Subtle film grain — tied to time so it shifts. */
+  float grain = (hash(vUv * vec2(1920.0, 1080.0) + vec2(uTime * 13.0, uTime * 7.0)) - 0.5) * 0.018;
+  col += vec3(grain);
+
+  gl_FragColor = vec4(col, 1.0);
 }
 `;

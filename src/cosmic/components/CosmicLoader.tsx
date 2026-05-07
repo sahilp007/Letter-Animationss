@@ -54,11 +54,11 @@ export function CosmicLoader({ progress, headline }: Props) {
 
       ctx.clearRect(0, 0, w, h);
 
-      /* Background — almost black with a subtle warm radial. */
+      /* Background — deep cosmic black with a faint warm radial. No purple. */
       const bg = ctx.createRadialGradient(cx, cy, 0, cx, cy, Math.max(w, h) * 0.7);
-      bg.addColorStop(0, "rgba(20, 14, 28, 1)");
-      bg.addColorStop(0.5, "rgba(7, 5, 12, 1)");
-      bg.addColorStop(1, "rgba(2, 1, 4, 1)");
+      bg.addColorStop(0, "rgba(14, 18, 26, 1)");
+      bg.addColorStop(0.5, "rgba(5, 8, 14, 1)");
+      bg.addColorStop(1, "rgba(2, 4, 8, 1)");
       ctx.fillStyle = bg;
       ctx.fillRect(0, 0, w, h);
 

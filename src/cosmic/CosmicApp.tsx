@@ -3,6 +3,7 @@ import { Canvas } from "@react-three/fiber";
 import { motion, AnimatePresence } from "framer-motion";
 import { Nebula } from "./components/Nebula";
 import { ParticleField } from "./components/ParticleField";
+import { Starfield } from "./components/Starfield";
 import { CameraRig } from "./components/CameraRig";
 import { Postprocess } from "./components/Postprocess";
 import { MemoryStarComp } from "./components/MemoryStar";
@@ -41,85 +42,87 @@ const VISUALS: Record<Movement, SceneVisuals> = {
   opening: {
     particleForm: 0,
     particleCollapse: 0,
-    particleIntensity: 0.05,
-    nebulaIntensity: 0.05,
-    bloom: 0.5,
-    vignette: 0.7,
-    warm: [1.0, 0.85, 0.55],
-    cool: [0.5, 0.55, 0.85],
-    deep: [0.04, 0.03, 0.06],
+    particleIntensity: 0.04,
+    nebulaIntensity: 0.06,
+    bloom: 0.45,
+    vignette: 0.78,
+    /* warm = amber starlight, cool = deep cosmic teal — no purple. */
+    warm: [1.0, 0.68, 0.28],
+    cool: [0.18, 0.42, 0.62],
+    deep: [0.005, 0.012, 0.022],
     showMemoryStars: false,
   },
   lift: {
-    particleForm: 0.25,
+    particleForm: 0.3,
     particleCollapse: 0,
-    particleIntensity: 0.4,
-    nebulaIntensity: 0.4,
-    bloom: 0.9,
-    vignette: 0.55,
-    warm: [1.0, 0.78, 0.5],
-    cool: [0.55, 0.55, 0.95],
-    deep: [0.05, 0.03, 0.09],
+    particleIntensity: 0.55,
+    nebulaIntensity: 0.5,
+    bloom: 1.0,
+    vignette: 0.6,
+    warm: [1.0, 0.66, 0.28],
+    cool: [0.22, 0.5, 0.78],
+    deep: [0.008, 0.018, 0.034],
     showMemoryStars: false,
   },
   galaxy: {
     particleForm: 1,
     particleCollapse: 0,
-    particleIntensity: 0.85,
-    nebulaIntensity: 0.85,
-    bloom: 1.4,
-    vignette: 0.45,
-    warm: [1.0, 0.78, 0.45],
-    cool: [0.5, 0.6, 1.0],
-    deep: [0.04, 0.02, 0.1],
+    particleIntensity: 0.95,
+    nebulaIntensity: 0.95,
+    bloom: 1.6,
+    vignette: 0.48,
+    warm: [1.0, 0.65, 0.26],
+    cool: [0.16, 0.55, 0.92],
+    deep: [0.006, 0.02, 0.045],
     showMemoryStars: false,
   },
   conductor: {
     particleForm: 1,
     particleCollapse: 0,
-    particleIntensity: 1.0,
-    nebulaIntensity: 1.0,
-    bloom: 1.7,
-    vignette: 0.4,
-    warm: [1.0, 0.82, 0.55],
-    cool: [0.55, 0.7, 1.0],
-    deep: [0.05, 0.03, 0.12],
+    particleIntensity: 1.1,
+    nebulaIntensity: 1.05,
+    bloom: 1.9,
+    vignette: 0.42,
+    warm: [1.0, 0.7, 0.32],
+    cool: [0.2, 0.62, 1.0],
+    deep: [0.008, 0.024, 0.055],
     showMemoryStars: true,
   },
   crescendo: {
     particleForm: 1,
     particleCollapse: 1,
-    particleIntensity: 1.4,
-    nebulaIntensity: 1.4,
-    bloom: 2.6,
-    vignette: 0.3,
-    warm: [1.0, 0.95, 0.78],
-    cool: [1.0, 0.85, 0.6],
-    deep: [0.1, 0.07, 0.05],
+    particleIntensity: 1.7,
+    nebulaIntensity: 1.5,
+    bloom: 3.0,
+    vignette: 0.32,
+    /* the explosion — gold/white dominant, cool side warms toward cream. */
+    warm: [1.0, 0.88, 0.62],
+    cool: [1.0, 0.78, 0.42],
+    deep: [0.06, 0.04, 0.02],
     showMemoryStars: false,
   },
   coda: {
     particleForm: 1,
-    particleCollapse: 0.85,
-    particleIntensity: 1.6,
-    nebulaIntensity: 1.5,
-    bloom: 2.4,
-    vignette: 0.25,
-    warm: [1.0, 0.95, 0.78],
-    cool: [1.0, 0.88, 0.65],
-    deep: [0.12, 0.08, 0.06],
+    particleCollapse: 0.78,
+    particleIntensity: 1.7,
+    nebulaIntensity: 1.55,
+    bloom: 2.6,
+    vignette: 0.28,
+    warm: [1.0, 0.88, 0.62],
+    cool: [1.0, 0.82, 0.5],
+    deep: [0.09, 0.06, 0.03],
     showMemoryStars: false,
   },
   moment: {
     particleForm: 1,
-    particleCollapse: 0.5,
-    particleIntensity: 0.65,
-    nebulaIntensity: 0.7,
-    bloom: 1.4,
-    vignette: 0.5,
-    warm: [0.9, 0.7, 0.55],
-    cool: [0.45, 0.5, 0.85],
-    deep: [0.05, 0.04, 0.08],
+    particleCollapse: 0.45,
+    particleIntensity: 0.7,
+    nebulaIntensity: 0.78,
+    bloom: 1.5,
+    vignette: 0.55,
+    warm: [0.95, 0.62, 0.3],
+    cool: [0.18, 0.4, 0.6],
+    deep: [0.01, 0.02, 0.038],
     showMemoryStars: false,
   },
 };
@@ -215,6 +218,33 @@ export function CosmicApp() {
 
   const memoizedMemories = useMemo(() => MEMORIES, []);
 
+  /* Fast-forward / rewind through movements with keyboard.
+     P or ArrowRight  → next movement
+     Shift+P or ArrowLeft → previous movement
+     Skips the "moment" (holding) branch in normal advance. */
+  useEffect(() => {
+    if (!unlocked) return;
+    const onKey = (e: KeyboardEvent) => {
+      const tag = (e.target as HTMLElement | null)?.tagName?.toLowerCase();
+      if (tag === "input" || tag === "textarea") return;
+      const order: Movement[] = ["opening", "lift", "galaxy", "conductor", "crescendo", "coda"];
+      const cur = order.indexOf(state.movement);
+      const isForward = e.key === "p" && !e.shiftKey;
+      const isBack = (e.key === "P" && e.shiftKey) || (e.key === "p" && e.shiftKey);
+      const isFwdArrow = e.key === "ArrowRight";
+      const isBackArrow = e.key === "ArrowLeft";
+      if (isForward || isFwdArrow) {
+        e.preventDefault();
+        if (cur >= 0 && cur < order.length - 1) enter(order[cur + 1]);
+      } else if (isBack || isBackArrow) {
+        e.preventDefault();
+        if (cur > 0) enter(order[cur - 1]);
+      }
+    };
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [state.movement, unlocked, enter]);
+
   return (
     <div className="cosmic-app">
       <Canvas
@@ -223,10 +253,12 @@ export function CosmicApp() {
         gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
         style={{ position: "absolute", inset: 0, zIndex: 0 }}
       >
-        <color attach="background" args={["#04030a"]} />
+        <color attach="background" args={["#02040a"]} />
         <Suspense fallback={null}>
           <Nebula intensity={visuals.nebulaIntensity} warm={visuals.warm} cool={visuals.cool} deep={visuals.deep} />
+          <Starfield intensity={Math.max(0.3, visuals.particleIntensity * 0.85)} />
           <ParticleField
+            count={11000}
             form={visuals.particleForm}
             collapse={visuals.particleCollapse}
             intensity={visuals.particleIntensity}
@@ -245,7 +277,7 @@ export function CosmicApp() {
       {/* HTML overlay scenes */}
       <div className="cosmic-overlay">
         {!unlocked && (
-          <BeginGate onBegin={handleBegin} />
+          <BeginGate onBegin={handleBegin} dev={isDev} />
         )}
 
         {unlocked && !ready && (
@@ -308,7 +340,7 @@ export function CosmicApp() {
   );
 }
 
-function BeginGate({ onBegin }: { onBegin: () => void }) {
+function BeginGate({ onBegin, dev }: { onBegin: () => void; dev: boolean }) {
   return (
     <motion.div
       className="cosmic-begin"
@@ -319,6 +351,7 @@ function BeginGate({ onBegin }: { onBegin: () => void }) {
       <div className="cosmic-begin__hint">headphones recommended</div>
       <button className="cosmic-begin__btn" onClick={onBegin}>begin</button>
       <div className="cosmic-begin__sub">a letter that plays itself</div>
+      {dev && <div className="cosmic-begin__shortcut">press P to skip ahead · Shift+P to step back</div>}
     </motion.div>
   );
 }
