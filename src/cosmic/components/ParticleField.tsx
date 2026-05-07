@@ -36,19 +36,31 @@ export function ParticleField({
     const sizes = new Float32Array(count);
     const chaos = new Float32Array(count * 3);
 
+    const colorMix = new Float32Array(count);
+    const tiers = new Float32Array(count);
+
     for (let i = 0; i < count; i++) {
-      const r = Math.pow(Math.random(), 1.7) * 30 + 1.5;
+      /* Concentrated toward galactic center, with a long thin tail. */
+      const r = Math.pow(Math.random(), 1.85) * 32 + 1.2;
       const a = Math.random() * Math.PI * 2;
-      const h = (Math.random() - 0.5) * 4 * (1 - r / 32);
+      const h = (Math.random() - 0.5) * 3.6 * (1 - Math.min(1, r / 32));
       seeds[i] = Math.random();
       radii[i] = r;
       angles[i] = a;
       heights[i] = h;
-      sizes[i] = 0.7 + Math.random() * 1.6;
-      chaos[i * 3] = (Math.random() - 0.5) * 80;
-      chaos[i * 3 + 1] = (Math.random() - 0.5) * 80;
-      chaos[i * 3 + 2] = (Math.random() - 0.5) * 80;
-      /* base position (overwritten by shader, but the buffer must exist) */
+
+      /* Tier distribution: most are dust (tier 0), some mid-stars (tier 1), few bright (tier 2). */
+      const tierRoll = Math.random();
+      const tier = tierRoll > 0.985 ? 2 : tierRoll > 0.86 ? 1 : 0;
+      tiers[i] = tier;
+      sizes[i] = tier === 2 ? 1.6 + Math.random() * 1.4 : tier === 1 ? 0.9 + Math.random() * 0.7 : 0.4 + Math.random() * 0.5;
+
+      /* Color mix biased to warm at galactic center, cool at the edges. */
+      colorMix[i] = Math.min(1, Math.max(0, r / 30 + (Math.random() - 0.5) * 0.45));
+
+      chaos[i * 3] = (Math.random() - 0.5) * 90;
+      chaos[i * 3 + 1] = (Math.random() - 0.5) * 90;
+      chaos[i * 3 + 2] = (Math.random() - 0.5) * 90;
       positions[i * 3] = 0;
       positions[i * 3 + 1] = 0;
       positions[i * 3 + 2] = 0;
@@ -61,6 +73,8 @@ export function ParticleField({
     geom.setAttribute("aHeight", new THREE.BufferAttribute(heights, 1));
     geom.setAttribute("aSize", new THREE.BufferAttribute(sizes, 1));
     geom.setAttribute("aChaos", new THREE.BufferAttribute(chaos, 3));
+    geom.setAttribute("aColorMix", new THREE.BufferAttribute(colorMix, 1));
+    geom.setAttribute("aTier", new THREE.BufferAttribute(tiers, 1));
 
     const mat = new THREE.ShaderMaterial({
       vertexShader: GALAXY_VERT,
