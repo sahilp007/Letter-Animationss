@@ -6,6 +6,7 @@ import { ParticleField } from "./components/ParticleField";
 import { CameraRig } from "./components/CameraRig";
 import { Postprocess } from "./components/Postprocess";
 import { MemoryStarComp } from "./components/MemoryStar";
+import { CosmicLoader } from "./components/CosmicLoader";
 import { Opening } from "./scenes/Opening";
 import { Lift } from "./scenes/Lift";
 import { Galaxy } from "./scenes/Galaxy";
@@ -248,10 +249,7 @@ export function CosmicApp() {
         )}
 
         {unlocked && !ready && (
-          <motion.div className="cosmic-loader" initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 1 }}>
-            <div className="cosmic-loader__bar" style={{ transform: `scaleX(${loadProgress})` }} />
-            <div className="cosmic-loader__hint">tuning the orchestra</div>
-          </motion.div>
+          <CosmicLoader progress={loadProgress} headline="tuning the orchestra" />
         )}
 
         {ready && state.movement === "opening" && (
