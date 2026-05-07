@@ -10,8 +10,8 @@ interface BusGains {
 }
 
 const DEFAULT_GAINS: BusGains = {
-  heartbeat: 0.85,
-  voice: 0.9,
+  heartbeat: 1.6,
+  voice: 0.95,
   song: 0.0,
   ambient: 0.15,
 };
